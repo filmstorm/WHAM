@@ -33,20 +33,49 @@ output/demo/[video_name]/
 
 ## Converting to BVH
 
-### Basic BVH Export
+### Single Person BVH Export
 ```bash
-# Convert WHAM output to BVH animation
+# Convert WHAM output to BVH animation (single person)
 python wham_to_bvh.py -i output/demo/happywalk/wham_output.pkl -o motion.bvh
 
 # Specify FPS and subject
 python wham_to_bvh.py -i output/demo/video/wham_output.pkl -o motion.bvh --fps 30 --subject 0
 ```
 
-### BVH Features
+### Multi-Person Scene Export
+```bash
+# Export all detected people as synchronized BVH files
+python wham_to_bvh_multiperson.py -i output/demo/video/wham_output.pkl -o output/demo/video/scene
+
+# Set minimum frames threshold (default: 30)
+python wham_to_bvh_multiperson.py -i wham_output.pkl -o scene --min-frames 50
+
+# Export without frame synchronization (each person has independent timeline)
+python wham_to_bvh_multiperson.py -i wham_output.pkl -o scene --no-sync
+```
+
+### Single-Person BVH Features
 - **World-grounded motion**: Character moves through scene space (not in-place)
 - **Proper orientation**: Character faces walking direction with correct pelvis rotation
 - **Standard skeleton**: SMPL 24-joint hierarchy compatible with animation tools
 - **Scale**: Exported in centimeters for visibility
+
+### Multi-Person Scene Features
+- **Unified world-space**: All characters positioned correctly relative to each other
+- **Frame synchronization**: All BVH files synced to same timeline (optional)
+- **Scene metadata**: JSON file with character info, positions, and frame ranges
+- **Automatic filtering**: Skip characters with too few frames (configurable threshold)
+- **T-pose padding**: Characters appear/disappear smoothly using neutral pose
+
+The multi-person exporter creates:
+```
+scene/
+├── person_00.bvh          # Each detected person
+├── person_01.bvh
+├── person_02.bvh
+├── ...
+└── scene_metadata.json    # Scene info and character list
+```
 
 ### BVH Coordinate System
 - **Y-up**: Vertical axis
@@ -100,9 +129,34 @@ python wham_to_bvh.py \
 ```
 
 ### Multi-Person Videos
-If video contains multiple people, the converter auto-selects the longest sequence. To specify a subject:
+
+**Single person export** - Auto-selects longest sequence, or specify subject:
 ```bash
 python wham_to_bvh.py -i wham_output.pkl -o motion.bvh --subject 0
+```
+
+**Multi-person scene export** - Exports all people together:
+```bash
+python wham_to_bvh_multiperson.py -i wham_output.pkl -o scene/
+# Then import all person_*.bvh files into your animation software
+```
+
+The metadata file shows each person's position and frame range:
+```json
+{
+  "fps": 30.0,
+  "scene_frames": 356,
+  "people": [
+    {
+      "subject_id": 0,
+      "bvh_file": "person_00.bvh",
+      "frames": 356,
+      "frame_range": [0, 355],
+      "center_position_cm": [824.3, -20.4, -37.7]
+    },
+    ...
+  ]
+}
 ```
 
 ## GPU Selection
@@ -148,7 +202,8 @@ This fix is in the DPVO submodule and wasn't committed to the main repo.
 
 ### Key Scripts
 - `demo.py` - Main WHAM processing (with GPU cleanup)
-- `wham_to_bvh.py` - BVH converter
+- `wham_to_bvh.py` - Single-person BVH converter
+- `wham_to_bvh_multiperson.py` - Multi-person scene BVH converter
 - `wham_to_bvh_backup.py` - Original backup version
 
 ### Models & Checkpoints

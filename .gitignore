@@ -1,0 +1,42 @@
+# Large model files and checkpoints
+checkpoints/
+*.pth
+*.pth.tar
+*.ckpt
+*.pt
+
+# SMPL models and data
+_DATA/
+dataset/
+
+# Example videos and outputs
+examples/
+output/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Logs and temporary files
+*.log
+*.tmp
+.cache/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*_backup.py
+*_broken.bvh

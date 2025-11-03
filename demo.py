@@ -82,11 +82,19 @@ def run(cfg,
             # TODO: Merge this into the previous while loop with an online bbox smoothing.
             tracking_results = extractor.run(video, tracking_results)
             logger.info('Complete Data preprocessing!')
-            
+
             # Save the processed data
             joblib.dump(tracking_results, osp.join(output_pth, 'tracking_results.pth'))
             joblib.dump(slam_results, osp.join(output_pth, 'slam_results.pth'))
             logger.info(f'Save processed data at {output_pth}')
+
+            # Free GPU memory after preprocessing
+            del detector
+            del extractor
+            if slam is not None:
+                del slam
+            torch.cuda.empty_cache()
+            logger.info('Freed GPU memory after preprocessing')
         
         # If the processed data already exists, load the processed data
         else:

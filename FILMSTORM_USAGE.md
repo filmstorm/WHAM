@@ -126,6 +126,24 @@ The current converter preserves WHAM's exact rotations. If character appears rot
 ### DPVO Compilation Issues
 Already fixed with `-U__SIZEOF_INT128__` flag in `third-party/DPVO/setup.py`
 
+**Fix details:**
+The DPVO CUDA extensions failed to compile due to conda sysroot headers containing `__int128` types incompatible with CUDA nvcc. Fixed by adding `-U__SIZEOF_INT128__` to all nvcc `extra_compile_args` in the setup.py:
+
+```python
+# In third-party/DPVO/setup.py
+ext_modules=[
+    CUDAExtension('cuda_corr',
+        sources=['dpvo/altcorr/correlation.cpp', 'dpvo/altcorr/correlation_kernel.cu'],
+        extra_compile_args={
+            'cxx':  ['-O3'],
+            'nvcc': ['-O3', '-U__SIZEOF_INT128__'],  # Added this flag
+        }),
+    # ... same for cuda_ba and lietorch_backends
+]
+```
+
+This fix is in the DPVO submodule and wasn't committed to the main repo.
+
 ## File Locations
 
 ### Key Scripts

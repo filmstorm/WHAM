@@ -43,12 +43,20 @@ python wham_to_bvh.py -i output/demo/video/wham_output.pkl -o motion.bvh --fps 3
 ```
 
 ### Multi-Person Scene Export
-```bash
-# Export all detected people as synchronized BVH files
-python wham_to_bvh_multiperson.py -i output/demo/video/wham_output.pkl -o output/demo/video/scene
 
-# Set minimum frames threshold (default: 30)
-python wham_to_bvh_multiperson.py -i wham_output.pkl -o scene --min-frames 50
+**Unified Scene BVH (RECOMMENDED)** - All characters in one file:
+```bash
+# Export all people to a single unified BVH file
+python wham_to_bvh_scene.py -i output/demo/video/wham_output.pkl -o scene.bvh
+
+# Custom minimum frames threshold (default: 30)
+python wham_to_bvh_scene.py -i wham_output.pkl -o scene.bvh --min-frames 50
+```
+
+**Separate BVH Files** - Each character gets own file:
+```bash
+# Export all detected people as separate synchronized BVH files
+python wham_to_bvh_multiperson.py -i output/demo/video/wham_output.pkl -o output/demo/video/scene
 
 # Export without frame synchronization (each person has independent timeline)
 python wham_to_bvh_multiperson.py -i wham_output.pkl -o scene --no-sync
@@ -61,13 +69,38 @@ python wham_to_bvh_multiperson.py -i wham_output.pkl -o scene --no-sync
 - **Scale**: Exported in centimeters for visibility
 
 ### Multi-Person Scene Features
-- **Unified world-space**: All characters positioned correctly relative to each other
-- **Frame synchronization**: All BVH files synced to same timeline (optional)
-- **Scene metadata**: JSON file with character info, positions, and frame ranges
-- **Automatic filtering**: Skip characters with too few frames (configurable threshold)
-- **T-pose padding**: Characters appear/disappear smoothly using neutral pose
 
-The multi-person exporter creates:
+**Unified Scene BVH** (wham_to_bvh_scene.py):
+- ✅ **Single BVH file** - All characters in one file for easy import
+- ✅ **Unified world-space** - Characters positioned correctly relative to each other
+- ✅ **Frame synchronization** - All characters on same timeline
+- ✅ **Hierarchical structure** - Each character as separate branch under Scene root
+- ✅ **T-pose padding** - Characters appear/disappear smoothly
+
+The unified exporter creates:
+```
+scene.bvh                  # Single file with all characters
+```
+
+Hierarchy structure:
+```
+ROOT Scene
+  JOINT Character_00       # Person 0
+    JOINT Character_00_Pelvis
+      ... (full skeleton)
+  JOINT Character_01       # Person 1
+    JOINT Character_01_Pelvis
+      ... (full skeleton)
+  ...
+```
+
+**Separate BVH Files** (wham_to_bvh_multiperson.py):
+- **Individual files** - Each person gets own BVH file
+- **Unified world-space** - All positioned correctly relative to each other
+- **Frame synchronization** - Optional (--no-sync to disable)
+- **Scene metadata** - JSON file with character info
+
+The separate exporter creates:
 ```
 scene/
 ├── person_00.bvh          # Each detected person
@@ -135,13 +168,21 @@ python wham_to_bvh.py \
 python wham_to_bvh.py -i wham_output.pkl -o motion.bvh --subject 0
 ```
 
-**Multi-person scene export** - Exports all people together:
+**Multi-person scene export**:
+
+Option 1 - Unified BVH (RECOMMENDED):
 ```bash
-python wham_to_bvh_multiperson.py -i wham_output.pkl -o scene/
-# Then import all person_*.bvh files into your animation software
+python wham_to_bvh_scene.py -i wham_output.pkl -o scene.bvh
+# Import single scene.bvh file with all characters
 ```
 
-The metadata file shows each person's position and frame range:
+Option 2 - Separate BVH files:
+```bash
+python wham_to_bvh_multiperson.py -i wham_output.pkl -o scene/
+# Import all person_*.bvh files together
+```
+
+The separate files option includes metadata showing each person's position:
 ```json
 {
   "fps": 30.0,
@@ -203,7 +244,8 @@ This fix is in the DPVO submodule and wasn't committed to the main repo.
 ### Key Scripts
 - `demo.py` - Main WHAM processing (with GPU cleanup)
 - `wham_to_bvh.py` - Single-person BVH converter
-- `wham_to_bvh_multiperson.py` - Multi-person scene BVH converter
+- `wham_to_bvh_scene.py` - Unified scene BVH converter (all characters in one file)
+- `wham_to_bvh_multiperson.py` - Multi-person BVH converter (separate files)
 - `wham_to_bvh_backup.py` - Original backup version
 
 ### Models & Checkpoints
